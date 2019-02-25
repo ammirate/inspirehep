@@ -31,3 +31,9 @@ services:
     extends: 
       file: docker-services.yml
       service: kibana
+  ui:
+    build:
+      context: ui/docker
+      dockerfile: Dockerfile-ui
+    ports:
+     - "8081:8081"
