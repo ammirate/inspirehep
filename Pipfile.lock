@@ -1,7 +1,7 @@
 {
     "_meta": {
         "hash": {
-            "sha256": "58f226ff4c542696d8ff7ca5cb7c0c49df7e811b8d7da6374091138721534f0d"
+            "sha256": "9ffa5dc07c14436ae82f650860c841a280871ec1e698f49742f789b48dd27ad6"
         },
         "pipfile-spec": 6,
         "requires": {
@@ -28,14 +28,6 @@
                 "sha256:6816eed27521293ee03aa9ace300a07215b11fee4e845588a9b863a7ba30addb"
             ],
             "version": "==2.4.1"
-        },
-        "appnope": {
-            "hashes": [
-                "sha256:5b26757dc6f79a3b7dc9fab95359328d5747fcb2409d331ea66d0272b90ab2a0",
-                "sha256:8b995ffe925347a2138d7ac0fe77155e4311a0ea6d6da4f5128fe4b3cbe5ed71"
-            ],
-            "markers": "sys_platform == 'darwin'",
-            "version": "==0.1.0"
         },
         "arrow": {
             "hashes": [
@@ -638,11 +630,11 @@
         },
         "invenio-records": {
             "hashes": [
-                "sha256:56487d0b7b800877e45f385dbba831fc988ca4df935ced281543dcaa1b6dd351",
-                "sha256:d25c865c7ba3be059a5699e5e135a46e6fbb06370b58754ef22c7fdf337a12f1"
+                "sha256:7228135f6b399e4d9070ec4feded814af58982f6cdb98ea236f9a3ccbb68e650",
+                "sha256:a1226e813f4d2592ef8165018b03b1995e12d38d6f3d3086782bc26b98793756"
             ],
             "index": "pypi",
-            "version": "==1.0.1"
+            "version": "==1.1.0"
         },
         "invenio-records-files": {
             "hashes": [
@@ -717,10 +709,9 @@
         },
         "isort": {
             "hashes": [
-                "sha256:6c3110ff0871d3a45f0ba1b8f7cefe38e845887210c80d952479fa7e74e00ad7",
-                "sha256:78ebda8283402dbe15e1fe8dc73e6d72e5d3c6a0c5e8dc489b2a4372280037af"
+                "sha256:f19b23b22fb5a919a081bc31aabcc0991614c244d9215267e11abf2ca7b684ce"
             ],
-            "version": "==4.3.8"
+            "version": "==4.3.9"
         },
         "itsdangerous": {
             "hashes": [
@@ -1617,10 +1608,9 @@
         },
         "isort": {
             "hashes": [
-                "sha256:6c3110ff0871d3a45f0ba1b8f7cefe38e845887210c80d952479fa7e74e00ad7",
-                "sha256:78ebda8283402dbe15e1fe8dc73e6d72e5d3c6a0c5e8dc489b2a4372280037af"
+                "sha256:f19b23b22fb5a919a081bc31aabcc0991614c244d9215267e11abf2ca7b684ce"
             ],
-            "version": "==4.3.8"
+            "version": "==4.3.9"
         },
         "itsdangerous": {
             "hashes": [
