@@ -39,7 +39,7 @@ DEBUG = 1
 # Rate limiting
 # =============
 #: Storage for ratelimiter.
-RATELIMIT_STORAGE_URL = "redis://localhost:6379/3"
+RATELIMIT_STORAGE_URL = "redis://redis:6379/3"
 
 # Email configuration
 # ===================
@@ -55,7 +55,7 @@ SECURITY_EMAIL_SENDER = SUPPORT_EMAIL
 #: Email subject for account registration emails.
 SECURITY_EMAIL_SUBJECT_REGISTER = _("Welcome to inspirehep!")
 #: Redis session storage URL.
-ACCOUNTS_SESSION_REDIS_URL = "redis://localhost:6379/1"
+ACCOUNTS_SESSION_REDIS_URL = "redis://redis:6379/1"
 
 # Deal with inconcistency :puke:
 PID_TYPES_TO_ENDPOINTS = {"lit": "literature"}
@@ -64,11 +64,11 @@ PID_TYPES_TO_SCHEMA = {"hep": "lit"}
 # Celery configuration
 # ====================
 
-BROKER_URL = "amqp://guest:guest@localhost:5672/"
+BROKER_URL = "amqp://guest:guest@mq:5672/"
 #: URL of message broker for Celery (default is RabbitMQ).
-CELERY_BROKER_URL = "amqp://guest:guest@localhost:5672/"
+CELERY_BROKER_URL = "amqp://guest:guest@mq:5672/"
 #: URL of backend for result storage (default is Redis).
-CELERY_RESULT_BACKEND = "redis://localhost:6379/2"
+CELERY_RESULT_BACKEND = "redis://mq:6379/2"
 #: Scheduled tasks configuration (aka cronjobs).
 CELERY_BEAT_SCHEDULE = {
     #'indexer': {
@@ -85,7 +85,7 @@ CELERY_BEAT_SCHEDULE = {
 # ========
 #: Database URI including user and password
 SQLALCHEMY_DATABASE_URI = (
-    "postgresql+psycopg2://inspirehep:inspirehep@localhost/inspirehep"
+    "postgresql+psycopg2://inspirehep:inspirehep@db:5432/inspirehep"
 )
 
 # JSONSchemas
@@ -406,3 +406,5 @@ SEARCH_SOURCE_INCLUDES = {
         "authors.inspire_roles",
     ]
 }
+
+APP_HEALTH_BLUEPRINT_ENABLED = True
