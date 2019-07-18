@@ -21,7 +21,7 @@ from invenio_pidstore.models import PersistentIdentifier, RecordIdentifier
 from invenio_records.errors import MissingModelError
 from invenio_records.models import RecordMetadata
 from invenio_records_files.api import Record
-from sqlalchemy import tuple_
+from sqlalchemy import Column, MetaData, String, Table, and_
 from sqlalchemy.orm.attributes import flag_modified
 
 from inspirehep.pidstore.api import PidStoreBase
@@ -79,44 +79,58 @@ class InspireRecord(Record):
 
     @classmethod
     def get_records_by_pids(cls, pids):
-        query = cls.get_record_metadata_by_pids(pids)
+        """Get the records related to the given PIDs.
+
+        Args:
+            pids (list of tuple): list of pid_type/pid_value couples.
+
+        Returns:
+            list of `InspireRecord`: the records related to the given PIDs.
+        """
+        ids = cls.get_records_ids_by_pids(pids)
+        query = RecordMetadata.query.filter(RecordMetadata.id.in_(ids))
 
         for data in query.yield_per(100):
             yield cls(data.json, model=data)
 
     @classmethod
-    def get_records_ids_by_pids(cls, pids, max_batch=100):
-        """If query is too big (~7000 pids) SQL refuses to run it,
-        so it has to be split"""
+    def get_records_ids_by_pids(cls, pids):
+        """Get the records' UUID related to the given PIDs.
 
-        for batch_no in range((len(pids) // max_batch) + 1):
-            query = cls._get_records_ids_by_pids(
-                pids[max_batch * batch_no : max_batch * (batch_no + 1)]  # noqa
-            )
-            for data in query.yield_per(100):
-                yield data.object_uuid
+        This function inserts the given PIDs in a temporary table to
+        join them on the `PersistentIdentifier` table, in order to avoid a very
+        expensive `in_` query, which might lead to a `max_stack_depth` error.
 
-    @classmethod
-    def _get_records_ids_by_pids(cls, pids):
-        query = PersistentIdentifier.query.filter(
-            PersistentIdentifier.object_type == "rec",
-            tuple_(PersistentIdentifier.pid_type, PersistentIdentifier.pid_value).in_(
-                pids
-            ),
+        Args:
+            pids (list of tuple): list of pid_type/pid_value couples.
+
+        Returns:
+            list: the UUIDs related to the given PIDs.
+        """
+        if not pids:
+            return []
+
+        temp_table = Table(
+            'temporary_pidstore',
+            MetaData(bind=db.session.bind),
+            Column('pid_type', String(10)),
+            Column('pid_value', String(25)),
+            prefixes=['TEMPORARY'],
+            postgresql_on_commit='DELETE ROWS'
         )
-        return query
+        temp_table.create(bind=db.session.bind, checkfirst=True)
+        temp_table.insert(values=pids).execute()
 
-    @classmethod
-    def get_record_metadata_by_pids(cls, pids):
-        query = RecordMetadata.query.join(
-            PersistentIdentifier, RecordMetadata.id == PersistentIdentifier.object_uuid
-        ).filter(
-            PersistentIdentifier.object_type == "rec",
-            tuple_(PersistentIdentifier.pid_type, PersistentIdentifier.pid_value).in_(
-                pids
-            ),
-        )
-        return query
+        ids = PersistentIdentifier.query. \
+            with_entities(PersistentIdentifier.object_uuid).join(
+                temp_table, and_(
+                    PersistentIdentifier.pid_type == temp_table.c.pid_type,
+                    PersistentIdentifier.pid_value == temp_table.c.pid_value
+                )
+            ).filter(PersistentIdentifier.object_type == 'rec').all()
+
+        temp_table.drop(bind=db.session.bind, checkfirst=True)
+        return [id_ for id_, in ids]
 
     @classmethod
     def get_class_for_record(cls, data):

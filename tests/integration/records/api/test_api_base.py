@@ -16,6 +16,7 @@ from invenio_pidstore.models import PersistentIdentifier, PIDStatus, RecordIdent
 from invenio_records.models import RecordMetadata
 
 from inspirehep.records.api import InspireRecord, LiteratureRecord
+# from inspirehep.records.api.models import TemporaryPidStore
 from inspirehep.records.errors import MissingSerializerError, WrongRecordSubclass
 
 
@@ -313,3 +314,86 @@ def test_record_create_and_update_with_legacy_creation_date(app, db):
     result_record_model_updated = RecordMetadata.query.filter_by(id=record.id).one()
     result_record_model_updated_created = str(result_record_model.created)
     assert result_record_model_updated_created == "2000-01-02 00:00:00"
+
+
+def test_get_recors_ids_by_pids_no_pids_in_db(base_app, db):
+    pids = [("lit", i) for i in range(1, 10)]
+    expected = []
+
+    result = InspireRecord.get_records_ids_by_pids(pids)
+    assert result == expected
+
+
+def test_get_recors_ids_by_pids_empty_pids_list_and_no_pid_in_db(base_app, db):
+    pids = []
+    expected = []
+
+    result = InspireRecord.get_records_ids_by_pids(pids)
+    assert result == expected
+
+
+def test_get_recors_ids_by_pids_empty_pids_list(base_app, db, create_record_factory):
+    create_record_factory("lit")
+
+    pids = []
+    expected = []
+
+    result = InspireRecord.get_records_ids_by_pids(pids)
+    assert result == expected
+
+
+def test_get_recors_ids_by_pids_returns_proper_results(base_app, db, create_record_factory):
+    arxiv_value = faker.arxiv()
+    data = {**faker.record("lit"), "arxiv_eprints": [{"value": arxiv_value}]}
+    rec1 = create_record_factory("lit", data)
+    rec2 = create_record_factory("aut")
+
+    pids = [
+        ("arxiv", arxiv_value),
+        ("lit", rec1.json["control_number"]),
+        ("aut", rec2.json["control_number"]),
+    ]
+
+    result = InspireRecord.get_records_ids_by_pids(pids)
+    assert rec1.id in result
+    assert rec2.id in result
+
+
+def test_get_recors_ids_by_pids_check_temp_table_is_not_there_before_and_after(base_app, db):
+    temp_table_name = "temporary_pidstore"
+
+    assert not db.engine.dialect.has_table(db.engine, temp_table_name)
+
+    pids = [("pid", str(i)) for i in range(10)]
+    for i in range(3):
+        result = InspireRecord.get_records_ids_by_pids(pids)
+
+        assert result == []
+        assert not db.engine.dialect.has_table(db.engine, temp_table_name)
+
+
+def test_get_recors_ids_by_pids_with_big_list_of_pids(base_app, db, create_record_factory):
+    rec = create_record_factory("lit")
+    expected = [rec.id]
+
+    pids = [("pid", str(i)) for i in range(10_000)]
+    pids.append(("lit", rec.json["control_number"]))
+    result = InspireRecord.get_records_ids_by_pids(pids)
+
+    assert result == expected
+
+
+def test_get_records_by_pids_with_big_list_of_pids(base_app, db, create_record_factory):
+    rec1 = create_record_factory("lit")
+    rec2 = create_record_factory("job")
+
+    pids = [("pid", str(i)) for i in range(20_000)]
+    pids.append(("lit", str(rec1.json["control_number"])))
+    pids.append(("job", str(rec2.json["control_number"])))
+
+    result = InspireRecord.get_records_by_pids(pids)
+
+    result = list(result)  # get_records_by_pids returns a generator
+
+    assert rec1.json in result
+    assert rec2.json in result
